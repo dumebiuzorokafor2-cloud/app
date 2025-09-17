@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Trailer App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #fff;
+    }
+    header {
+      padding: 1rem;
+      text-align: center;
+      background: #222;
+    }
+    .movie-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .movie-card {
+      background: #1c1c1c;
+      border-radius: 10px;
+      padding: 0.5rem;
+      text-align: center;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .movie-card:hover {
+      transform: scale(1.03);
+    }
+    .movie-card img {
+      width: 100%;
+      aspect-ratio: 2/3;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+    .movie-card h3 {
+      margin: 0.5rem 0 0;
+      font-size: 1.1rem;
+    }
+    .movie-card p {
+      margin: 0.2rem 0;
+      font-size: 0.9rem;
+      color: #bbb;
+    }
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #222;
+      padding: 1rem;
+      border-radius: 10px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90%;
+      overflow-y: auto;
+    }
+    .modal iframe {
+      width: 100%;
+      height: 400px;
+      border: none;
+      border-radius: 8px;
+    }
+    .modal h2 {
+      margin-top: 1rem;
+    }
+    .close-btn {
+      float: right;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    @media (max-width: 600px) {
+      .modal iframe {
+        height: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🎬 Movie Trailer App</h1>
+  </header>
+
+  <div class="movie-grid" id="movieGrid"></div>
+
+  <!-- Modal -->
+  <div class="modal" id="trailerModal">
+    <div class="modal-content">
+      <span class="close-btn" id="closeModal">&times;</span>
+      <iframe id="trailerVideo" src="" allowfullscreen></iframe>
+      <h2 id="movieTitle"></h2>
+      <p id="movieGenre"></p>
+      <p id="movieSynopsis"></p>
+      <h3>Cast</h3>
+      <ul id="movieCast"></ul>
+    </div>
+  </div>
+
+  <script>
+    const movies = [
+      {
+        title: "Inception",
+        year: "2010",
+        genre: "Sci-Fi/Thriller",
+        poster: "https://m.media-amazon.com/images/I/51xJPTa3FqL._AC_.jpg",
+        yt: "YoHD9XEInc0",
+        synopsis: "A thief who enters the dreams of others to steal secrets gets a chance at redemption.",
+        cast: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"]
+      },
+      {
+        title: "Ballerina",
+        year: "2010",
+        genre: "Sci-Fi/Thriller",
+        poster: "Ballerina.WEBP",
+        yt: "YoHD9XEInc0",
+        synopsis: "A thief who enters the dreams of others to steal secrets gets a chance at redemption.",
+        cast: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"]
+      },
+      {
+        title: "Breaking Bad",
+        year: "2010",
+        genre: "Sci-Fi/Thriller",
+        poster: "breaking bad.webp",
+        yt: "YoHD9XEInc0",
+        synopsis: "A thief who enters the dreams of others to steal secrets gets a chance at redemption.",
+        cast: ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"]
+      },
+      {
+        title: "The Dark Knight",
+        year: "2008",
+        genre: "Action/Crime",
+        poster: "https://m.media-amazon.com/images/I/51K8ouYrHeL._AC_.jpg",
+        yt: "EXeTwQWrcwY",
+        synopsis: "Batman faces the Joker, a criminal mastermind spreading chaos in Gotham.",
+        cast: ["Christian Bale", "Heath Ledger", "Aaron Eckhart"]
+      },
+      {
+        title: "Interstellar",
+        year: "2014",
+        genre: "Sci-Fi/Adventure",
+        poster: "https://m.media-amazon.com/images/I/71n58i7CPsL._AC_SL1111_.jpg",
+        yt: "zSWdZVtXT7E",
+        synopsis: "Explorers undertake a mission through a wormhole to save humanity.",
+        cast: ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain"]
+      },
+      {
+        title: "Avengers: Endgame",
+        year: "2019",
+        genre: "Action/Sci-Fi",
+        poster: "https://m.media-amazon.com/images/I/81ExhpBEbHL._AC_SY679_.jpg",
+        yt: "TcMBFSGVi1c",
+        synopsis: "The Avengers assemble to undo the damage caused by Thanos.",
+        cast: ["Robert Downey Jr.", "Chris Evans", "Scarlett Johansson"]
+      },
+      {
+        title: "Black Panther",
+        year: "2018",
+        genre: "Action/Adventure",
+        poster: "https://m.media-amazon.com/images/I/81rxRBAM3aL._AC_SY679_.jpg",
+        yt: "xjDjIWPwcPU",
+        synopsis: "T'Challa returns to Wakanda to take his place as king and face challengers.",
+        cast: ["Chadwick Boseman", "Michael B. Jordan", "Lupita Nyong'o"]
+      }
+    ];
+
+    const movieGrid = document.getElementById("movieGrid");
+    const modal = document.getElementById("trailerModal");
+    const closeModal = document.getElementById("closeModal");
+    const trailerVideo = document.getElementById("trailerVideo");
+    const movieTitle = document.getElementById("movieTitle");
+    const movieGenre = document.getElementById("movieGenre");
+    const movieSynopsis = document.getElementById("movieSynopsis");
+    const movieCast = document.getElementById("movieCast");
+
+    function renderMovies() {
+      movies.forEach((movie, index) => {
+        const card = document.createElement("div");
+        card.className = "movie-card";
+        card.innerHTML = `
+          <img src="${movie.poster}" alt="${movie.title}">
+          <h3>${movie.title}</h3>
+          <p>${movie.year}</p>
+          <p>${movie.genre}</p>
+        `;
+        card.addEventListener("click", () => openModal(index));
+        movieGrid.appendChild(card);
+      });
+    }
+
+    function openModal(index) {
+      const movie = movies[index];
+      modal.style.display = "flex";
+      trailerVideo.src = `https://www.youtube.com/embed/${movie.yt}?autoplay=1`;
+      movieTitle.textContent = movie.title;
+      movieGenre.textContent = movie.genre + " (" + movie.year + ")";
+      movieSynopsis.textContent = movie.synopsis;
+      movieCast.innerHTML = movie.cast.map(actor => `<li>${actor}</li>`).join("");
+    }
+
+    closeModal.addEventListener("click", () => {
+      modal.style.display = "none";
+      trailerVideo.src = "";
+    });
+
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.style.display = "none";
+        trailerVideo.src = "";
+      }
+    });
+
+    renderMovies();
+  </script>
+</body>
+</html>
